@@ -127,6 +127,63 @@
 			
 		</div>
 	</body>
+<script type="text/template" id="cons">
+		<div>
+		<router-link to="/myitem">
+			<div class="fanhui">返回</div>
+		</router-link>
+			<div class="swiper-container">
+			  <div class="swiper-wrapper">
+			    <div class="swiper-slide" v-for="(item,index) in swiperArr">
+					<img :src="item.url" :alt="item.name"/>
+				</div>
+			  </div>
+				<div class="swiper-pagination"></div>
+				<div class="swiper-button-next"></div>
+				<div class="swiper-button-prev"></div>
+			</div>
+			<div class="titless">
+				<div class="titles2">
+					<div class="titles2-0">{{kechengitem.pro_name}}</div>
+					<div class="titles2-1">
+						<div>按教练约定时间上课</div>
+						<div class="titles2-2">0好评</div>
+					</div>
+				</div>
+				<div class="titles3">
+					<div>有效期:不限</div>
+					<div>场地:学院自行选择预约</div>
+				</div>
+				<div class="titles4">
+					<span>{{kechengitem.pro_price}}.0</span>元
+				</div>
+			</div>
+			<div class="yuyue">
+				<div class="yuyue-1">
+					<div>可预约场馆</div>
+					<span>{{lengths}}</span>
+				</div>
+				<div class="yuyues">
+					<div v-if="lengths == 0" class="zanwu">暂无健身房</div>
+					<div class="yuyue-2" v-for="(item,index) in kechengitem.pro_gym_list">
+						<img :src="item.gym_headimg[0].url" >
+						<div class="titles2-2-1">
+							<div>{{item.gym_name}}</div>
+							<div class="titles2-2-1-2">{{item.gym_address}}</div>
+							<div class="titles2-2-1-3">
+								<div>{{item.gym_distance}}</div>
+								<div class="titles2-2-1-3-2">导航</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="dibu">
+				<div>联系客服</div>
+				<div>立即购买</div>
+			</div>
+		</div>
+	</script>
 	<script type="text/javascript">
 		
 			
@@ -149,11 +206,12 @@
 					    <div class="swiper-pagination"></div>
 					</div>
 					<br>
-					<router-link to="/myitem/:index">
+		
 					<div>
 						<div class="news">
 							<ul>
 								<li v-for="(items,key) in list">
+									<router-link to="'/myneirong/'+item.pro_id"">
 									<img :src="items.pro_img[0].url">
 									<div class="zzz">
 									<span>{{items.pro_name}}</span>
@@ -187,34 +245,50 @@
 				
 			}
 			var myitem = {
-				data:function(){
-					return {
-						item:{}
+						data:function(){
+							return {
+								kechengitem:{},
+								swiperArr:[],
+								lengths:0
+							}
+						},
+						template:'#cons',
+						mounted:function(){
+							new Swiper('.swiper-container', {
+								spaceBetween: 30,
+								observer: true,
+								centeredSlides: true,
+								autoplay: {
+								  delay: 2500,
+								  disableOnInteraction: false,
+								},
+								pagination: {
+								  el: '.swiper-pagination',
+								  clickable: true,
+								},
+								navigation: {
+								  nextEl: '.swiper-button-next',
+								  prevEl: '.swiper-button-prev',
+								},
+							}),
+							console.log(this.$route.params.pro_id);
+							var pid= parseInt(this.$route.params.pro_id);
+							let params = new URLSearchParams();
+							params.append('pro_id',pid);
+							params.append('fid','');
+							axios.post("https://www.jvhv.com/siteindex.php/Lesson/Detail.html",params).then((res)=>{
+								console.log(res);
+								this.kechengitem = res.data.data;
+								console.log(this.kechengitem);
+								this.lengths = this.kechengitem.pro_gym_list.length;
+								this.swiperArr = res.data.data.pro_imglist;
+								console.log(this.swiperArr);
+							})
+						},
 					}
-				},
-				template:`<div>
-					<div class="imgz"><img src="https://img.jvhv.com/images/201908/5d5f44fba0a1b.png"></div>
-					<div  class="alls">
-					<h2>青少年私教</h2>
-					<div style="margin-top:0.5rem"><span>按教练约定时间上课</span></div>
-					<div style="margin-top:0.7rem"><span>有效期：不限|场地：学员自行选择预约</span></div>
-					<div style="margin-top:0.5rem"><span class="z">600</span><span style = "color:red">.0</span>元</div>
-					</div>
-				</div>
-				`,
-					
-
-					mounted:function(){
-						axios.post("https://www.jvhv.com/siteindex.php/Lesson/Detail.html").then((data)=>{
-							console.log(data);
-						})
-					},
-				
-			}
-			
 			var routes = [
 				{"path":"/","component":mylist},
-				{"path":"/myitem/:index","component":myitem}
+				{"path":"/myitem/:pro_id","component":myitem}
 			]
 			var router = new VueRouter({
 				routes:routes
